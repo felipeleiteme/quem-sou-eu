@@ -1,0 +1,73 @@
+name: Merge All PRs
+
+on:
+  workflow_dispatch:
+    inputs:
+      merge_method:
+        description: "Método de merge (merge, squash, rebase)"
+        required: false
+        default: squash
+        type: choice
+        options:
+          - squash
+          - merge
+          - rebase
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mesclar todos os PRs abertos
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const method = core.getInput('merge_method') || 'squash';
+            const { owner, repo } = context.repo;
+
+            core.info(`Listando PRs abertos em ${owner}/${repo}...`);
+            const prs = await github.paginate(github.rest.pulls.list, {
+              owner,
+              repo,
+              state: 'open',
+              per_page: 100,
+            });
+
+            if (!prs.length) {
+              core.info('Nenhum PR aberto encontrado.');
+              return;
+            }
+
+            for (const pr of prs) {
+              core.startGroup(`PR #${pr.number} - ${pr.title}`);
+              try {
+                // Tenta aprovar (caso haja exigência de aprovação)
+                await github.rest.pulls.createReview({
+                  owner,
+                  repo,
+                  pull_number: pr.number,
+                  event: 'APPROVE',
+                  body: 'Aprovado automaticamente pelo workflow Merge All PRs.',
+                });
+                core.info(`Aprovado PR #${pr.number}`);
+              } catch (err) {
+                core.warning(`Falha ao aprovar PR #${pr.number}: ${err.message}`);
+              }
+
+              try {
+                await github.rest.pulls.merge({
+                  owner,
+                  repo,
+                  pull_number: pr.number,
+                  merge_method: method,
+                });
+                core.info(`Mesclado PR #${pr.number} com método '${method}'.`);
+              } catch (err) {
+                core.warning(`Falha ao mesclar PR #${pr.number}: ${err.message}`);
+              }
+              core.endGroup();
+            }
+
