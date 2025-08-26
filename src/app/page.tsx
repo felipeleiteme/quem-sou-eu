@@ -138,15 +138,15 @@ export default function Home() {
       usedCharacterIds: firstCharacter ? [firstCharacter.id] : []
     };
 
+    if (forceNew) {
+      clearSavedGame();
+    }
+
     setGameData(newGameData);
     saveGame(newGameData);
     setUserGuess('');
     setMessage('');
     setGameLoaded(true);
-    
-    if (forceNew) {
-      clearSavedGame();
-    }
   };
 
   const confirmReset = () => {
@@ -331,7 +331,9 @@ export default function Home() {
     startNewGame(false);
   }, []);
 
-  if (gameData.gameState === 'won' && gameData.round >= gameData.totalRounds) {
+  if (gameData.gameState === 'won') {
+    const completedAllRounds = gameData.round >= gameData.totalRounds;
+    const uniqueFoundCount = new Set(gameData.usedCharacterIds || []).size;
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
         <div className="max-w-4xl mx-auto">
@@ -339,7 +341,9 @@ export default function Home() {
             <CardHeader>
               <CardTitle className="text-3xl text-green-600">🎉 Jogo Concluído!</CardTitle>
               <CardDescription className="text-xl">
-                Parabéns por completar o jogo Quem Sou Eu? da Bíblia!
+                {completedAllRounds
+                  ? 'Parabéns por completar todas as rodadas do Quem Sou Eu? da Bíblia!'
+                  : 'Parabéns! Você encontrou todos os personagens disponíveis!'}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -347,9 +351,11 @@ export default function Home() {
                 Pontuação Final: {gameData.score}
               </div>
               <div className="text-lg text-gray-600">
-                Você acertou {gameData.totalRounds} personagens bíblicos!
+                {completedAllRounds
+                  ? `Você acertou ${gameData.totalRounds} personagens bíblicos!`
+                  : `Você acertou ${uniqueFoundCount} personagens bíblicos!`}
               </div>
-              <Button onClick={startNewGame} size="lg" className="text-lg">
+              <Button onClick={() => startNewGame(true)} size="lg" className="text-lg">
                 Jogar Novamente
               </Button>
             </CardContent>
