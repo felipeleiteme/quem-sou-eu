@@ -32,6 +32,7 @@ interface GameData {
   streak: number;
   skipsUsed: number;
   maxSkips: number;
+  usedCharacterIds: number[];
 }
 
 export default function Home() {
@@ -46,7 +47,8 @@ export default function Home() {
     totalRounds: 100, // Alterado para 100 rodadas
     streak: 0,
     skipsUsed: 0,
-    maxSkips: 3
+    maxSkips: 3,
+    usedCharacterIds: []
   });
 
   const [userGuess, setUserGuess] = useState('');
@@ -55,9 +57,13 @@ export default function Home() {
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [gameLoaded, setGameLoaded] = useState(false);
 
-  const getRandomCharacter = (): BibleCharacter => {
-    const randomIndex = Math.floor(Math.random() * bibleCharacters.length);
-    return bibleCharacters[randomIndex];
+  const getRandomCharacter = (usedIds: number[]): BibleCharacter | null => {
+    const availableCharacters = bibleCharacters.filter(
+      (c) => !usedIds.includes(c.id)
+    );
+    if (availableCharacters.length === 0) return null;
+    const randomIndex = Math.floor(Math.random() * availableCharacters.length);
+    return availableCharacters[randomIndex];
   };
 
   // Funções para salvar e carregar o jogo
@@ -82,6 +88,9 @@ export default function Home() {
             if (character) {
               parsed.currentCharacter = character;
             }
+          }
+          if (!parsed.usedCharacterIds) {
+            parsed.usedCharacterIds = [parsed.currentCharacter.id];
           }
           return parsed;
         }
@@ -113,8 +122,9 @@ export default function Home() {
       }
     }
 
+    const firstCharacter = getRandomCharacter([]);
     const newGameData: GameData = {
-      currentCharacter: getRandomCharacter(),
+      currentCharacter: firstCharacter!,
       hintsUsed: 0,
       maxHints: gameData.difficulty === 'easy' ? 5 : gameData.difficulty === 'medium' ? 4 : 3,
       score: 0,
@@ -124,7 +134,8 @@ export default function Home() {
       totalRounds: 100, // 100 rodadas
       streak: 0,
       skipsUsed: 0,
-      maxSkips: gameData.difficulty === 'easy' ? 5 : gameData.difficulty === 'medium' ? 3 : 1
+      maxSkips: gameData.difficulty === 'easy' ? 5 : gameData.difficulty === 'medium' ? 3 : 1,
+      usedCharacterIds: firstCharacter ? [firstCharacter.id] : []
     };
     
     setGameData(newGameData);
@@ -148,7 +159,11 @@ export default function Home() {
 
   const nextRound = () => {
     if (gameData.round >= gameData.totalRounds) {
-      const finalData = { ...gameData, gameState: 'won' as GameState };
+      const finalData = {
+        ...gameData,
+        gameState: 'won' as GameState,
+        usedCharacterIds: [...gameData.usedCharacterIds, gameData.currentCharacter.id],
+      };
       setGameData(finalData);
       saveGame(finalData);
       setMessage(`Parabéns! Você completou todas as ${gameData.totalRounds} rodadas com pontuação total de ${gameData.score}!`);
@@ -158,13 +173,31 @@ export default function Home() {
       return;
     }
 
+    const updatedUsedIds = [...gameData.usedCharacterIds, gameData.currentCharacter.id];
+    const nextCharacter = getRandomCharacter(updatedUsedIds);
+
+    if (!nextCharacter) {
+      const finalData = {
+        ...gameData,
+        usedCharacterIds: updatedUsedIds,
+        gameState: 'won' as GameState,
+      };
+      setGameData(finalData);
+      saveGame(finalData);
+      setMessage(`Parabéns! Você encontrou todos os personagens disponíveis com pontuação total de ${gameData.score}!`);
+      setMessageType('success');
+      clearSavedGame();
+      return;
+    }
+
     const newRoundData = {
       ...gameData,
-      currentCharacter: getRandomCharacter(),
+      currentCharacter: nextCharacter,
       hintsUsed: 0,
-      round: gameData.round + 1
+      round: gameData.round + 1,
+      usedCharacterIds: updatedUsedIds,
     };
-    
+
     setGameData(newRoundData);
     saveGame(newRoundData);
     setUserGuess('');
