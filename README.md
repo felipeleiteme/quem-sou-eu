@@ -60,8 +60,8 @@ This scaffold provides a robust foundation built with:
 # Install dependencies
 npm install
 
-# Start development server
-npm run dev
+# Start development server (porta 3001 por padrão)
+npm run dev:3001
 
 # Build for production
 npm run build
@@ -70,7 +70,14 @@ npm run build
 npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see your application running.
+Open [http://localhost:3001](http://localhost:3001) to see your application running.
+
+### 🔧 Ambiente
+
+1. Copie `.env.example` para `.env.local`
+2. Ajuste `PORT=3001` se quiser outra porta
+3. Alternativamente, você pode usar `npm run dev` (usa a porta definida em `.env.local`)
+
 
 ## 🤖 Powered by Z.ai
 
