@@ -111,6 +111,18 @@ PORT=3001 npm start
 
 Recomendado para: Railway, Render, Fly.io, VPS/VMs. Use `PORT`/`HOST` conforme necessário (veja `.env.example`).
 
+## 🏷️ Versionamento e Releases
+
+- Padrão: Semantic Versioning (`vMAJOR.MINOR.PATCH`), ex.: `v0.1.2`.
+- Criar nova tag:
+  - `git tag -a v0.1.2 -m "v0.1.2: suas notas"`
+  - `git push origin v0.1.2`
+- Release automático: ao fazer push de uma tag `v*`, o workflow "Create Release on Tag" cria um Release com release notes.
+- Acionamento manual: GitHub → Actions → "Create Release on Tag" → Run workflow → informe a tag (ex.: `v0.1.2`).
+- Dicas:
+  - Use `vX.Y.Z` para seguir o padrão.
+  - Mantenha mensagens de tag descritivas para gerar notas úteis.
+
 
 
 ## 🤖 Powered by Z.ai
