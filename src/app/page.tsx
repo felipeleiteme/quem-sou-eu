@@ -208,16 +208,33 @@ export default function Home() {
   };
 
   const checkAnswer = () => {
-    const normalizedGuess = userGuess.trim().toLowerCase();
-    const normalizedAnswer = gameData.currentCharacter.name.toLowerCase();
-    
-    // Handle special cases like "Abraão (Abrão)"
-    const alternativeNames = gameData.currentCharacter.name
-      .replace(/[()]/g, '')
-      .split('/')
-      .map(name => name.trim().toLowerCase());
-    
-    const isCorrect = alternativeNames.includes(normalizedGuess) || normalizedAnswer.includes(normalizedGuess);
+    const normalize = (str: string) =>
+      str
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]/gi, '')
+        .toLowerCase();
+
+    const normalizedGuess = normalize(userGuess);
+
+    const alternativeNames = Array.from(
+      new Set(
+        gameData.currentCharacter.name
+          .split('/')
+          .flatMap(name => {
+            const names = [name.trim()];
+            const match = name.match(/\(([^)]+)\)/);
+            if (match) {
+              names.push(match[1].trim());
+              names.push(name.replace(/\([^)]*\)/, '').trim());
+            }
+            return names;
+          })
+          .map(normalize)
+      )
+    );
+
+    const isCorrect = alternativeNames.some(name => name === normalizedGuess);
 
     if (isCorrect) {
       const basePoints = Math.max(10 - gameData.hintsUsed, 1);
