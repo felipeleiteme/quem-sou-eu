@@ -78,6 +78,40 @@ Open [http://localhost:3001](http://localhost:3001) to see your application runn
 2. Ajuste `PORT=3001` se quiser outra porta
 3. Alternativamente, você pode usar `npm run dev` (usa a porta definida em `.env.local`)
 
+## ☁️ Deploy
+
+### Vercel (recomendado para o frontend)
+
+1. Faça push do repositório para o GitHub.
+2. No dashboard da Vercel, clique em "New Project" e importe o repositório.
+3. Framework Preset: selecione "Next.js".
+4. Build & Output (padrão):
+   - Build Command: `next build`
+   - Output: automático (`.next`)
+   - Node.js Version: 20 (Project Settings → General → Node.js Version)
+5. Variáveis de ambiente: nenhuma obrigatória para este projeto. Ignore `PORT`/`HOST` na Vercel (elas não são usadas lá).
+6. Deploy. A Vercel cuidará do roteamento e serverless.
+
+Observação sobre WebSockets/Socket.IO
+- O arquivo `server.ts` é um servidor customizado com Socket.IO para uso local/produção própria.
+- Na Vercel, servidores Node custom não são executados; portanto, o Socket.IO via `server.ts` não estará ativo.
+- Como o jogo atual não usa WebSocket, o deploy na Vercel funciona normalmente.
+- Se você precisar de WebSockets:
+  - Opção A: hospede o `server.ts` em um provedor de Node (Railway, Render, Fly.io) e aponte o frontend para ele.
+  - Opção B: reimplemente a funcionalidade com suporte a WebSocket nativo do Next/Vercel (quando aplicável).
+
+### Outros provedores (Node server completo)
+
+Para executar o servidor custom (`server.ts`) com Socket.IO:
+
+```bash
+npm run build
+PORT=3001 npm start
+```
+
+Recomendado para: Railway, Render, Fly.io, VPS/VMs. Use `PORT`/`HOST` conforme necessário (veja `.env.example`).
+
+
 
 ## 🤖 Powered by Z.ai
 
