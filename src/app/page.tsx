@@ -248,10 +248,11 @@ export default function Home() {
     // Handle special cases like "Abraão (Abrão)"
     const alternativeNames = gameData.currentCharacter.name
       .replace(/[()]/g, '')
-      .split('/')
-      .map(name => name.trim().toLowerCase());
-    
-    const isCorrect = alternativeNames.includes(normalizedGuess) || normalizedAnswer.includes(normalizedGuess);
+      .split(/[\s,;:\/\-]+/)
+      .map(name => name.trim().toLowerCase())
+      .filter(Boolean);
+
+    const isCorrect = alternativeNames.includes(normalizedGuess);
 
     if (isCorrect) {
       const basePoints = Math.max(10 - gameData.hintsUsed, 1);
