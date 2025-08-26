@@ -126,8 +126,9 @@ export default function Home() {
       skipsUsed: 0,
       maxSkips: gameData.difficulty === 'easy' ? 5 : gameData.difficulty === 'medium' ? 3 : 1
     };
-    
+
     setGameData(newGameData);
+    saveGame(newGameData);
     setUserGuess('');
     setMessage('');
     setGameLoaded(true);
